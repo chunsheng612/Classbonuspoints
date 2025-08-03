@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>班級經營動力站 v2.1</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
+        
+        :root, body.theme-cosmic {
+            --primary-color: #0A84FF;
+            --success-color: #30D158;
+            --danger-color: #FF453A;
+            --warning-color: #FF9F0A;
+            --bg-gradient: linear-gradient(135deg, #1D2B64, #34495e);
+            --card-bg: rgba(28, 28, 30, 0.65);
+            --card-border: rgba(255, 255, 255, 0.1); 
+            --text-color-primary: rgba(255, 255, 255, 0.95); 
+            --text-color-secondary: rgba(255, 255, 255, 0.6); 
+            --input-bg: rgba(0, 0, 0, 0.3);
+            --shadow-color: rgba(0, 0, 0, 0.4);
+            --control-border-radius: 14px;
+            --particle-color: rgba(255, 255, 255, 0.6);
+        }
+        body.theme-warm {
+            --primary-color: #D2691E;
+            --success-color: #2E8B57;
+            --danger-color: #DC143C;
+            --warning-color: #FFA500;
+            --bg-gradient: linear-gradient(-45deg, #FDFBF8, #F5DEB3, #FAEBD7, #FDF5E6);
+            --card-bg: rgba(255, 255, 255, 0.25);
+            --card-border: rgba(255, 255, 255, 0.3); 
+            --text-color-primary: #3D352A;
+            --text-color-secondary: rgba(61, 53, 42, 0.7); 
+            --input-bg: rgba(255, 255, 255, 0.2);
+            --shadow-color: rgba(0, 0, 0, 0.1);
+            --particle-color: rgba(210, 105, 30, 0.5);
+        }
+        body.theme-apple {
+            --primary-color: #007AFF;
+            --success-color: #34C759;
+            --danger-color: #FF3B30;
+            --warning-color: #FF9500;
+            --bg-gradient: linear-gradient(135deg, #fceabb 0%, #f8b500 100%);
+            --card-bg: rgba(255, 255, 255, 0.45);
+            --card-border: rgba(255, 255, 255, 0.5); 
+            --text-color-primary: #1d1d1f;
+            --text-color-secondary: #3c3c43; 
+            --input-bg: rgba(255, 255, 255, 0.5);
+            --shadow-color: rgba(0, 0, 0, 0.15);
+            --particle-color: rgba(255, 255, 255, 0.7);
+        }
+
+        * { box-sizing: border-box; }
+        html, body { height: 100%; margin: 0; }
+        body {
+            font-family: 'Inter', 'Noto Sans TC', sans-serif;
+            color: var(--text-color-primary);
+            -webkit-font-smoothing: antialiased;
+            background: var(--bg-gradient);
+            background-size: 200% 200%;
+            animation: gradientBG 20s ease infinite;
+            overflow-x: hidden;
+        }
+        @keyframes gradientBG { 0% { background-position: 0% 50%; } 50% { background-position: 100% 50%; } 100% { background-position: 0% 50%; } }
+        #particle-canvas { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: -1; }
+
+        .app-screen { display: none; padding: 30px; width: 100%; min-height: 100%; padding-bottom: 100px; }
+        .app-screen.active { display: flex; flex-direction: column; animation: fadeIn 0.5s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
+        
+        .container { max-width: 1400px; margin: 0 auto; width: 100%; }
+        .header { display: flex; flex-wrap: wrap; justify-content: space-between; align-items: center; margin-bottom: 30px; gap: 15px; }
+        h1 { font-weight: 700; font-size: 2.5em; color: var(--text-color-primary); text-shadow: 0 2px 10px rgba(0,0,0,0.4); }
+        .card { background: var(--card-bg); backdrop-filter: blur(50px); -webkit-backdrop-filter: blur(50px); border-radius: 24px; border: 1px solid var(--card-border); box-shadow: 0 20px 60px 0 var(--shadow-color); padding: 30px; }
+        h2 { font-weight: 600; color: var(--text-color-primary); margin: 0 0 25px; font-size: 1.8em; }
+        h3 { font-weight: 700; margin: 0; font-size: 1.2em; }
+        
+        button, input { border-radius: var(--control-border-radius) !important; font-family: inherit; border: none; }
+        button { cursor: pointer; transition: all 0.2s ease; transform: scale(1); }
+        button:hover { transform: scale(1.05); filter: brightness(1.1); }
+        button:active { transform: scale(0.98); filter: brightness(0.95); }
+        .btn { padding: 12px 25px; font-weight: 600; font-size: 1em; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .btn-primary { background: var(--primary-color); color: white; }
+        .btn-success { background: var(--success-color); color: white; }
+        .btn-danger { background: var(--danger-color); color: white; }
+        .btn-secondary { background: var(--input-bg); color: var(--text-color-primary); border: 1px solid var(--card-border); }
+        input { background: var(--input-bg); color: var(--text-color-primary); padding: 12px 15px; border: 1px solid var(--card-border); }
+
+        #theme-switcher { display: flex; gap: 8px; background: var(--input-bg); padding: 5px; border-radius: var(--control-border-radius); border: 1px solid var(--card-border); }
+        .theme-btn { width: 30px; height: 30px; border-radius: 50%; border: 2px solid transparent; cursor: pointer; }
+        .theme-btn.active { border-color: var(--primary-color); }
+        #theme-cosmic { background: linear-gradient(135deg, #1D2B64, #34495e); }
+        #theme-warm { background: linear-gradient(135deg, #FDFBF8, #F5DEB3); }
+        #theme-apple { background: linear-gradient(135deg, #fceabb, #f8b500); }
+        .creator-credit { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--card-border); color: var(--text-color-secondary); padding: 10px 20px; border-radius: var(--control-border-radius); font-size: 14px; font-weight: 500; text-decoration: none; z-index: 100; transition: all 0.3s ease; }
+        .creator-credit:hover { color: var(--text-color-primary); box-shadow: 0 5px 20px rgba(0,0,0,0.2); transform: translateY(-3px) translateX(-50%); }
+
+        /* ... All other CSS styles from previous version ... */
+        #class-dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
+        .class-card { padding: 25px; cursor: pointer; text-align: center; position: relative; }
+        #add-class-card { border: 2px dashed var(--card-border); font-size: 3em; display: flex; align-items: center; justify-content: center; color: var(--text-color-secondary); }
+        .class-view-nav { display: flex; gap: 5px; margin-bottom: 25px; background: rgba(0,0,0,0.2); border-radius: var(--control-border-radius); padding: 5px; }
+        .nav-tab { flex: 1; text-align: center; padding: 12px; color: var(--text-color-secondary); font-weight: 600; border-radius: 10px; }
+        .nav-tab.active { background: var(--primary-color); color: white; box-shadow: 0 0 15px var(--primary-color); }
+        .tab-content { display: none; } .tab-content.active { display: block; animation: fadeIn 0.4s; }
+        #student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
+        .student-card { padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+        .student-name { font-size: 1.3em; font-weight: 600; }
+        .student-score { font-size: 2.5em; font-weight: 900; margin: 15px 0; color: var(--primary-color); }
+        .score-controls { display: flex; gap: 10px; }
+        .score-btn { width: 44px; height: 44px; font-size: 1.8em; padding: 0; border-radius: 50% !important; }
+        .score-feedback { position: absolute; top: 50%; left: 50%; font-size: 3.5em; font-weight: 900; pointer-events: none; opacity: 0; animation: score-pop 0.6s ease-out; }
+        @keyframes score-pop { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(1); } }
+        .group-container { display: grid; grid-template-columns: 300px 1fr; gap: 25px; align-items: start; }
+        @media (max-width: 900px) { .group-container { grid-template-columns: 1fr; } }
+        .groups-area { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
+        .group-column { background: rgba(0,0,0,0.2); border-radius: var(--control-border-radius); padding: 20px; }
+        .group-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+        .group-members { min-height: 150px; border-radius: 8px; padding: 5px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
+        .student-chip { background: var(--card-bg); backdrop-filter: blur(10px); padding: 10px; border-radius: 10px; cursor: grab; text-align: center; }
+        #unassigned-students .student-chip { background: var(--warning-color); color: white; }
+        .grades-actions { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; }
+        #grades-table-container { overflow-x: auto; }
+        #grades-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
+        #grades-table th, #grades-table td { padding: 15px; text-align: center; border-bottom: 1px solid var(--card-border); }
+        .final-grade { font-weight: 900; font-size: 1.3em; color: var(--success-color); }
+        .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(15px); opacity: 0; transition: opacity 0.3s ease; }
+        .modal.visible { display: flex; opacity: 1; }
+        .modal .card { width: 90%; max-width: 450px; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.2); }
+        .modal.visible .card { transform: scale(1); }
+    </style>
+</head>
+<body>
+    <canvas id="particle-canvas"></canvas>
+    
+    <div id="class-dashboard" class="app-screen active"><div class="container"><div class="header"><h1>班級經營動力站</h1><div style="display: flex; gap: 15px; align-items: center;"><div id="theme-switcher"><button class="theme-btn" id="theme-cosmic" title="宇宙巡航"></button><button class="theme-btn" id="theme-warm" title="暖心白板"></button><button class="theme-btn" id="theme-apple" title="蘋果簡約"></button></div><div style="display: flex; gap: 10px;"><button id="load-data-btn" class="btn btn-secondary">載入</button><button id="export-data-btn" class="btn btn-primary">匯出</button></div></div></div><div id="class-dashboard-grid"></div></div></div>
+    <div id="class-view" class="app-screen"><div class="container"><div class="header"><h1 id="class-view-title"></h1><button id="back-to-dashboard-btn" class="btn btn-secondary">返回總覽</button></div><div class="class-view-nav"><button class="nav-tab active" data-tab="students">個人模式</button><button class="nav-tab" data-tab="groups">分組模式</button><button class="nav-tab" data-tab="grades">成績結算</button></div><div id="students-tab" class="tab-content active card"><div id="student-grid"></div></div><div id="groups-tab" class="tab-content"><div class="card" style="margin-bottom: 20px;"><div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: end;"><div style="flex-grow: 1;"><label>設定組數</label><input type="number" id="group-count-input" value="4"></div><button id="random-group-btn" class="btn btn-primary">一鍵隨機分組</button></div></div><div class="group-container"><div class="group-column card" id="unassigned-students-column"><div class="group-header"><h3>未分組</h3></div><div class="group-members" id="unassigned-students"></div></div><div class="groups-area" id="groups-area"></div></div></div><div id="grades-tab" class="tab-content card"><div class="grades-actions"><button id="calculate-grades-btn" class="btn btn-success">一鍵結算平時分數</button><button id="export-grades-btn" class="btn btn-primary">匯出Excel報表</button><button id="reset-scores-btn" class="btn btn-danger">新考段分數重置</button></div><div id="grades-table-container"><table id="grades-table"><thead><tr><th>座號/姓名</th><th>累積淨分</th><th>平時分數</th></tr></thead><tbody></tbody></table></div></div></div></div>
+    <div id="add-class-modal" class="modal"><div class="card"><h2>新增班級</h2><div style="margin-bottom: 15px;"><label>班級名稱</label><input type="text" id="new-class-name" placeholder="例如：三年一班"></div><div style="margin-bottom: 20px;"><label>班級人數</label><input type="number" id="new-class-size" value="28"></div><div style="display: flex; gap: 10px;"><button id="cancel-add-class" class="btn btn-secondary" style="flex:1;">取消</button><button id="confirm-add-class" class="btn btn-primary" style="flex:1;">確認</button></div></div></div>
+    <input type="file" id="file-input" style="display: none;" accept=".json">
+    <a href="https://www.facebook.com/FunFun.AI.Teacher/" target="_blank" rel="noopener noreferrer" class="creator-credit">Created by 方方老師</a>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const screens = { dashboard: document.getElementById('class-dashboard'), classView: document.getElementById('class-view') };
+            const classDashboardGrid = document.getElementById('class-dashboard-grid');
+            const addClassModal = document.getElementById('add-class-modal');
+            const newClassNameInput = document.getElementById('new-class-name');
+            const newClassSizeInput = document.getElementById('new-class-size');
+            const confirmAddClassBtn = document.getElementById('confirm-add-class');
+            const cancelAddClassBtn = document.getElementById('cancel-add-class');
+            const classViewTitle = document.getElementById('class-view-title');
+            const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
+            const navTabs = document.querySelectorAll('.nav-tab');
+            const tabContents = document.querySelectorAll('.tab-content');
+            const studentGrid = document.getElementById('student-grid');
+            const groupCountInput = document.getElementById('group-count-input');
+            const randomGroupBtn = document.getElementById('random-group-btn');
+            const unassignedStudentsContainer = document.getElementById('unassigned-students');
+            const groupsArea = document.getElementById('groups-area');
+            const gradesTableBody = document.querySelector('#grades-table tbody');
+            const calculateGradesBtn = document.getElementById('calculate-grades-btn');
+            const exportGradesBtn = document.getElementById('export-grades-btn');
+            const resetScoresBtn = document.getElementById('reset-scores-btn');
+            const exportDataBtn = document.getElementById('export-data-btn');
+            const loadDataBtn = document.getElementById('load-data-btn');
+            const fileInput = document.getElementById('file-input');
+            const themeSwitcher = document.getElementById('theme-switcher');
+            
+            let allClasses = [];
+            let currentClassId = null;
+            let draggedStudentId = null;
+
+            const saveData = () => localStorage.setItem('classroomPowerhouse_v2_1', JSON.stringify(allClasses));
+            const loadData = () => { const data = localStorage.getItem('classroomPowerhouse_v2_1'); if (data) allClasses = JSON.parse(data); };
+            const switchScreen = (screenName) => { Object.values(screens).forEach(s => s.classList.remove('active')); screens[screenName].classList.add('active'); };
+            const switchTab = (tabName) => { navTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName)); tabContents.forEach(c => c.classList.toggle('active', c.id === `${tabName}-tab`)); };
+            const showModal = (modalId) => document.getElementById(modalId).classList.add('visible');
+            const hideModal = (modalId) => document.getElementById(modalId).classList.remove('visible');
+
+            const applyTheme = (themeName) => { document.body.className = `theme-${themeName}`; document.querySelectorAll('.theme-btn').forEach(btn => { btn.classList.toggle('active', btn.id === `theme-${themeName}`); }); if (window.initParticles) initParticles(); };
+            const saveTheme = (themeName) => localStorage.setItem('classroomPowerhouse_theme', themeName);
+            const loadTheme = () => { const savedTheme = localStorage.getItem('classroomPowerhouse_theme') || 'cosmic'; applyTheme(savedTheme); };
+
+            const renderDashboard = () => { classDashboardGrid.innerHTML = ''; allClasses.forEach(c => { const card = document.createElement('div'); card.className = 'card class-card'; card.dataset.id = c.id; card.innerHTML = `<h3>${c.name}</h3><p>${c.students.length} 位學生</p>`; classDashboardGrid.appendChild(card); }); const addCard = document.createElement('button'); addCard.className = 'card class-card'; addCard.id = 'add-class-card'; addCard.textContent = '+'; classDashboardGrid.appendChild(addCard); };
+            const renderClassView = () => { const c = allClasses.find(cls => cls.id === currentClassId); if (!c) { switchScreen('dashboard'); return; } classViewTitle.textContent = c.name; renderStudentsTab(c); renderGroupsTab(c); renderGradesTab(c); switchTab('students'); switchScreen('classView'); };
+            const renderStudentsTab = (c) => { studentGrid.innerHTML = ''; c.students.forEach(s => { const card = document.createElement('div'); card.className = 'card student-card'; card.innerHTML = `<div class="student-name">${s.name}</div><div class="student-score">${s.score}</div><div class="score-controls"><button class="btn btn-danger score-btn" data-id="${s.id}" data-amount="-1">-</button><button class="btn btn-success score-btn" data-id="${s.id}" data-amount="1">+</button></div>`; studentGrid.appendChild(card); }); };
+            const renderGroupsTab = (c) => { unassignedStudentsContainer.innerHTML = ''; groupsArea.innerHTML = ''; if (!c.groupCount) c.groupCount = 4; groupCountInput.value = c.groupCount; c.students.forEach(s => { if (s.group === null || s.group > c.groupCount) unassignedStudentsContainer.appendChild(createStudentChip(s)); }); for (let i = 1; i <= c.groupCount; i++) { const col = document.createElement('div'); col.className = 'group-column card'; col.dataset.groupId = i; col.innerHTML = `<div class="group-header"><h3>第 ${i} 組</h3><div class="score-controls"><button class="btn btn-danger score-btn" data-id="${i}" data-amount="-1">-</button><button class="btn btn-success score-btn" data-id="${i}" data-amount="1">+</button></div></div><div class="group-members"></div>`; const members = col.querySelector('.group-members'); c.students.filter(s => s.group === i).forEach(s => members.appendChild(createStudentChip(s))); groupsArea.appendChild(col); } };
+            const renderGradesTab = (c) => { gradesTableBody.innerHTML = ''; c.students.forEach(s => { const r = document.createElement('tr'); r.innerHTML = `<td>${s.name}</td><td>${s.score}</td><td class="final-grade" data-id="${s.id}">-</td>`; gradesTableBody.appendChild(r); }); };
+            const createStudentChip = (s) => { const c = document.createElement('div'); c.className = 'student-chip'; c.textContent = s.name; c.dataset.studentId = s.id; c.draggable = true; return c; };
+            const showScoreFeedback = (el, amount) => { const f = document.createElement('div'); f.className = 'score-feedback'; f.textContent = amount > 0 ? `+${amount}` : amount; f.style.color = amount > 0 ? 'var(--success-color)' : 'var(--danger-color)'; el.appendChild(f); setTimeout(() => f.remove(), 600); };
+            const updateScore = (id, amount) => { const c = allClasses.find(cls => cls.id === currentClassId); const s = c.students.find(st => st.id === id); if (s) { s.score += amount; saveData(); const card = studentGrid.querySelector(`.score-btn[data-id="${id}"]`).closest('.student-card'); showScoreFeedback(card, amount); setTimeout(() => { renderStudentsTab(c); renderGradesTab(c); }, 300); } };
+            const updateGroupScore = (id, amount) => { const c = allClasses.find(cls => cls.id === currentClassId); c.students.filter(s => s.group === id).forEach(s => s.score += amount); saveData(); const col = document.querySelector(`.group-column[data-group-id="${id}"]`); showScoreFeedback(col, amount); setTimeout(() => { renderStudentsTab(c); renderGradesTab(c); }, 300); };
+            const calculateGrades = () => { const c = allClasses.find(cls => cls.id === currentClassId); const scores = c.students.map(s => s.score); const min = Math.min(...scores), max = Math.max(...scores); const range = max - min; c.students.forEach(s => { let grade = (range === 0) ? 90 : 80 + ((s.score - min) / range) * 20; document.querySelector(`.final-grade[data-id="${s.id}"]`).textContent = Math.round(grade); }); };
+            const resetScores = () => { if(confirm('確定要重置所有學生的分數嗎？')) { const c = allClasses.find(cls => cls.id === currentClassId); c.students.forEach(s => s.score = 0); saveData(); renderClassView(); } };
+
+            classDashboardGrid.addEventListener('click', (e) => { const card = e.target.closest('.class-card'); if (card && card.id === 'add-class-card') { showModal('add-class-modal'); } else if (card) { currentClassId = parseInt(card.dataset.id); renderClassView(); } });
+            confirmAddClassBtn.addEventListener('click', () => { const name = newClassNameInput.value.trim(); const count = parseInt(newClassSizeInput.value, 10); if (name && count > 0 && allClasses.length < 20) { const newClass = { id: Date.now(), name, students: [], groupCount: 4 }; for(let i=1; i<=count; i++) newClass.students.push({id: i, name: `${i}號`, score: 0, group: null}); allClasses.push(newClass); saveData(); renderDashboard(); hideModal('add-class-modal'); } else { alert('請輸入有效班級名稱與人數(最多20個班級)。'); } });
+            groupCountInput.addEventListener('change', () => { const c = allClasses.find(cls => cls.id === currentClassId); c.groupCount = parseInt(groupCountInput.value, 10); c.students.forEach(s => s.group = null); saveData(); renderGroupsTab(c); });
+            randomGroupBtn.addEventListener('click', () => { const c = allClasses.find(cls => cls.id === currentClassId); const count = c.groupCount || 4; const shuffled = [...c.students].sort(() => 0.5 - Math.random()); shuffled.forEach((s, i) => s.group = (i % count) + 1); saveData(); renderGroupsTab(c); });
+            
+            cancelAddClassBtn.addEventListener('click', () => hideModal('add-class-modal'));
+            backToDashboardBtn.addEventListener('click', () => switchScreen('dashboard'));
+            navTabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
+            studentGrid.addEventListener('click', (e) => { if(e.target.matches('.score-btn')) updateScore(parseInt(e.target.dataset.id), parseInt(e.target.dataset.amount)); });
+            groupsArea.addEventListener('click', (e) => { if (e.target.matches('.score-btn')) updateGroupScore(parseInt(e.target.dataset.id), parseInt(e.target.dataset.amount)); });
+            calculateGradesBtn.addEventListener('click', calculateGrades);
+            resetScoresBtn.addEventListener('click', resetScores);
+            exportGradesBtn.addEventListener('click', () => { let tsv = "姓名\t淨分\t平時分數\n"; document.querySelectorAll('#grades-table tbody tr').forEach(r => { const c = r.querySelectorAll('td'); tsv += `${c[0].textContent}\t${c[1].textContent}\t${c[2].textContent}\n`; }); navigator.clipboard.writeText(tsv).then(() => alert('成績已複製！可直接貼到Excel。')); });
+            exportDataBtn.addEventListener('click', () => { const dataStr = JSON.stringify(allClasses); const blob = new Blob([dataStr], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.download = `班級動力站_備份_${new Date().toISOString().slice(0,10)}.json`; a.href = url; a.click(); URL.revokeObjectURL(url); });
+            loadDataBtn.addEventListener('click', () => fileInput.click());
+            fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (Array.isArray(data)) { if (confirm("確定載入存檔？將覆蓋現有資料！")) { allClasses = data; saveData(); renderDashboard(); alert("載入成功！"); } } else { alert("檔案格式錯誤。"); } } catch { alert("讀取失敗。"); } }; reader.readAsText(file); } });
+            document.addEventListener('dragstart', (e) => { if(e.target.matches('.student-chip')) draggedStudentId = parseInt(e.target.dataset.studentId); });
+            document.addEventListener('dragover', (e) => e.preventDefault());
+            document.addEventListener('drop', (e) => { const col = e.target.closest('.group-column, #unassigned-students-column'); if (col) { const groupId = col.id === 'unassigned-students-column' ? null : parseInt(col.dataset.groupId); const c = allClasses.find(cls => cls.id === currentClassId); const s = c.students.find(st => st.id === draggedStudentId); if (s) { s.group = groupId; saveData(); renderGroupsTab(c); } } });
+            themeSwitcher.addEventListener('click', (e) => { const themeBtn = e.target.closest('.theme-btn'); if(themeBtn) { const themeName = themeBtn.id.replace('theme-', ''); applyTheme(themeName); saveTheme(themeName); } });
+
+            const canvas = document.getElementById('particle-canvas'); const ctx = canvas.getContext('2d'); let particles = [];
+            const resizeCanvas = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
+            class Particle { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2.5 + 0.5; this.speedY = Math.random() * 0.5 + 0.1; this.opacity = Math.random() * 0.5 + 0.2; } update() { this.y -= this.speedY; if (this.y < 0) { this.y = canvas.height; this.x = Math.random() * canvas.width; } } draw() { const color = getComputedStyle(document.body).getPropertyValue('--particle-color').trim(); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
+            window.initParticles = () => { particles = []; const num = window.innerWidth / 30; for (let i = 0; i < num; i++) particles.push(new Particle()); };
+            const animateParticles = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); };
+            window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
+            
+            loadData();
+            loadTheme();
+            renderDashboard();
+            switchScreen('dashboard');
+            resizeCanvas();
+            initParticles();
+            animateParticles();
+        });
+    </script>
+</body>
+</html>
