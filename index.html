@@ -193,53 +193,24 @@
     
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. 變數宣告 (全部集中在這裡) ---
             const screens = { dashboard: document.getElementById('class-dashboard'), classView: document.getElementById('class-view') };
-            classDashboardGrid.addEventListener('click', (e) => {
-    const card = e.target.closest('.class-card');
-    if (!card) return;
-
-    const classId = parseInt(card.dataset.id);
-
-    // 點擊刪除按鈕
-    if (e.target.closest('.delete-class-btn')) {
-        e.stopPropagation(); // 防止觸發進入班級
-        const targetClass = allClasses.find(c => c.id === classId);
-        if (targetClass && confirm(`確定要刪除「${targetClass.name}」嗎？所有資料將無法復原！`)) {
-            allClasses = allClasses.filter(c => c.id !== classId);
-            saveData();
-            renderDashboard();
-        }
-    }
-    // 點擊編輯按鈕
-    else if (e.target.closest('.edit-class-btn')) {
-        e.stopPropagation(); // 防止觸發進入班級
-        const targetClass = allClasses.find(c => c.id === classId);
-        if (targetClass) {
-            editClassNameInput.value = targetClass.name;
-            editClassModal.dataset.editingId = classId;
-            showModal('edit-class-modal');
-        }
-    }
-    // 點擊新增班級卡片
-    else if (card.id === 'add-class-card') {
-        showModal('add-class-modal');
-    }
-    // 點擊班級卡片本身
-    else if (card) {
-        currentClassId = classId;
-        renderClassView();
-    }
-});
+            const classDashboardGrid = document.getElementById('class-dashboard-grid');
+            
+            // 新增班級 Modal
             const addClassModal = document.getElementById('add-class-modal');
             const newClassNameInput = document.getElementById('new-class-name');
+            const newClassSizeInput = document.getElementById('new-class-size');
+            const confirmAddClassBtn = document.getElementById('confirm-add-class');
+            const cancelAddClassBtn = document.getElementById('cancel-add-class');
+
+            // 編輯班級 Modal (新增的)
             const editClassModal = document.getElementById('edit-class-modal');
             const editClassNameInput = document.getElementById('edit-class-name');
             const confirmEditClassBtn = document.getElementById('confirm-edit-class');
             const cancelEditClassBtn = document.getElementById('cancel-edit-class');
-            const newClassSizeInput = document.getElementById('new-class-size');
-            const newClassSizeInput = document.getElementById('new-class-size');
-            const confirmAddClassBtn = document.getElementById('confirm-add-class');
-            const cancelAddClassBtn = document.getElementById('cancel-add-class');
+            
+            // 班級檢視畫面
             const classViewTitle = document.getElementById('class-view-title');
             const backToDashboardBtn = document.getElementById('back-to-dashboard-btn');
             const navTabs = document.querySelectorAll('.nav-tab');
@@ -262,71 +233,119 @@
             let currentClassId = null;
             let draggedStudentId = null;
 
+            // --- 2. 核心功能函數 ---
             const saveData = () => localStorage.setItem('classroomPowerhouse_v2_1', JSON.stringify(allClasses));
             const loadData = () => { const data = localStorage.getItem('classroomPowerhouse_v2_1'); if (data) allClasses = JSON.parse(data); };
             const switchScreen = (screenName) => { Object.values(screens).forEach(s => s.classList.remove('active')); screens[screenName].classList.add('active'); };
             const switchTab = (tabName) => { navTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName)); tabContents.forEach(c => c.classList.toggle('active', c.id === `${tabName}-tab`)); };
             const showModal = (modalId) => document.getElementById(modalId).classList.add('visible');
             const hideModal = (modalId) => document.getElementById(modalId).classList.remove('visible');
-
             const applyTheme = (themeName) => { document.body.className = `theme-${themeName}`; document.querySelectorAll('.theme-btn').forEach(btn => { btn.classList.toggle('active', btn.id === `theme-${themeName}`); }); if (window.initParticles) initParticles(); };
             const saveTheme = (themeName) => localStorage.setItem('classroomPowerhouse_theme', themeName);
             const loadTheme = () => { const savedTheme = localStorage.getItem('classroomPowerhouse_theme') || 'cosmic'; applyTheme(savedTheme); };
 
+            // --- 3. 畫面渲染函數 ---
             const renderDashboard = () => {
-            classDashboardGrid.innerHTML = '';
-            allClasses.forEach(c => {
-                const card = document.createElement('div');
-                card.className = 'card class-card';
-                card.dataset.id = c.id;
-                card.innerHTML = `
-                    <div class="class-card-actions">
-                        <button class="class-action-btn edit-class-btn" title="編輯班級">✏️</button>
-                        <button class="class-action-btn delete-class-btn" title="刪除班級">🗑️</button>
-                    </div>
-                    <h3>${c.name}</h3>
-                    <p>${c.students.length} 位學生</p>
-                `;
-                classDashboardGrid.appendChild(card);
-            });
-            const addCard = document.createElement('button');
-            addCard.className = 'card class-card';
-            addCard.id = 'add-class-card';
-            addCard.textContent = '+';
-            classDashboardGrid.appendChild(addCard);
-        };
+                classDashboardGrid.innerHTML = '';
+                allClasses.forEach(c => {
+                    const card = document.createElement('div');
+                    card.className = 'card class-card';
+                    card.dataset.id = c.id;
+                    card.innerHTML = `
+                        <div class="class-card-actions">
+                            <button class="class-action-btn edit-class-btn" title="編輯班級">✏️</button>
+                            <button class="class-action-btn delete-class-btn" title="刪除班級">🗑️</button>
+                        </div>
+                        <h3>${c.name}</h3>
+                        <p>${c.students.length} 位學生</p>
+                    `;
+                    classDashboardGrid.appendChild(card);
+                });
+                const addCard = document.createElement('button');
+                addCard.className = 'card class-card';
+                addCard.id = 'add-class-card';
+                addCard.textContent = '+';
+                classDashboardGrid.appendChild(addCard);
+            };
             const renderClassView = () => { const c = allClasses.find(cls => cls.id === currentClassId); if (!c) { switchScreen('dashboard'); return; } classViewTitle.textContent = c.name; renderStudentsTab(c); renderGroupsTab(c); renderGradesTab(c); switchTab('students'); switchScreen('classView'); };
             const renderStudentsTab = (c) => { studentGrid.innerHTML = ''; c.students.forEach(s => { const card = document.createElement('div'); card.className = 'card student-card'; card.innerHTML = `<div class="student-name">${s.name}</div><div class="student-score">${s.score}</div><div class="score-controls"><button class="btn btn-danger score-btn" data-id="${s.id}" data-amount="-1">-</button><button class="btn btn-success score-btn" data-id="${s.id}" data-amount="1">+</button></div>`; studentGrid.appendChild(card); }); };
             const renderGroupsTab = (c) => { unassignedStudentsContainer.innerHTML = ''; groupsArea.innerHTML = ''; if (!c.groupCount) c.groupCount = 4; groupCountInput.value = c.groupCount; c.students.forEach(s => { if (s.group === null || s.group > c.groupCount) unassignedStudentsContainer.appendChild(createStudentChip(s)); }); for (let i = 1; i <= c.groupCount; i++) { const col = document.createElement('div'); col.className = 'group-column card'; col.dataset.groupId = i; col.innerHTML = `<div class="group-header"><h3>第 ${i} 組</h3><div class="score-controls"><button class="btn btn-danger score-btn" data-id="${i}" data-amount="-1">-</button><button class="btn btn-success score-btn" data-id="${i}" data-amount="1">+</button></div></div><div class="group-members"></div>`; const members = col.querySelector('.group-members'); c.students.filter(s => s.group === i).forEach(s => members.appendChild(createStudentChip(s))); groupsArea.appendChild(col); } };
             const renderGradesTab = (c) => { gradesTableBody.innerHTML = ''; c.students.forEach(s => { const r = document.createElement('tr'); r.innerHTML = `<td>${s.name}</td><td>${s.score}</td><td class="final-grade" data-id="${s.id}">-</td>`; gradesTableBody.appendChild(r); }); };
             const createStudentChip = (s) => { const c = document.createElement('div'); c.className = 'student-chip'; c.textContent = s.name; c.dataset.studentId = s.id; c.draggable = true; return c; };
+            
+            // --- 4. 業務邏輯函數 ---
             const showScoreFeedback = (el, amount) => { const f = document.createElement('div'); f.className = 'score-feedback'; f.textContent = amount > 0 ? `+${amount}` : amount; f.style.color = amount > 0 ? 'var(--success-color)' : 'var(--danger-color)'; el.appendChild(f); setTimeout(() => f.remove(), 600); };
             const updateScore = (id, amount) => { const c = allClasses.find(cls => cls.id === currentClassId); const s = c.students.find(st => st.id === id); if (s) { s.score += amount; saveData(); const card = studentGrid.querySelector(`.score-btn[data-id="${id}"]`).closest('.student-card'); showScoreFeedback(card, amount); setTimeout(() => { renderStudentsTab(c); renderGradesTab(c); }, 300); } };
             const updateGroupScore = (id, amount) => { const c = allClasses.find(cls => cls.id === currentClassId); c.students.filter(s => s.group === id).forEach(s => s.score += amount); saveData(); const col = document.querySelector(`.group-column[data-group-id="${id}"]`); showScoreFeedback(col, amount); setTimeout(() => { renderStudentsTab(c); renderGradesTab(c); }, 300); };
             const calculateGrades = () => { const c = allClasses.find(cls => cls.id === currentClassId); const scores = c.students.map(s => s.score); const min = Math.min(...scores), max = Math.max(...scores); const range = max - min; c.students.forEach(s => { let grade = (range === 0) ? 90 : 80 + ((s.score - min) / range) * 20; document.querySelector(`.final-grade[data-id="${s.id}"]`).textContent = Math.round(grade); }); };
             const resetScores = () => { if(confirm('確定要重置所有學生的分數嗎？')) { const c = allClasses.find(cls => cls.id === currentClassId); c.students.forEach(s => s.score = 0); saveData(); renderClassView(); } };
 
-            classDashboardGrid.addEventListener('click', (e) => { const card = e.target.closest('.class-card'); if (card && card.id === 'add-class-card') { showModal('add-class-modal'); } else if (card) { currentClassId = parseInt(card.dataset.id); renderClassView(); } });
+            // --- 5. 事件監聽 (Event Listeners) ---
+            classDashboardGrid.addEventListener('click', (e) => {
+                const card = e.target.closest('.class-card');
+                if (!card) return;
+                const classId = parseInt(card.dataset.id);
+                if (e.target.closest('.delete-class-btn')) {
+                    e.stopPropagation();
+                    const targetClass = allClasses.find(c => c.id === classId);
+                    if (targetClass && confirm(`確定要刪除「${targetClass.name}」嗎？所有資料將無法復原！`)) {
+                        allClasses = allClasses.filter(c => c.id !== classId);
+                        saveData();
+                        renderDashboard();
+                    }
+                } else if (e.target.closest('.edit-class-btn')) {
+                    e.stopPropagation();
+                    const targetClass = allClasses.find(c => c.id === classId);
+                    if (targetClass) {
+                        editClassNameInput.value = targetClass.name;
+                        editClassModal.dataset.editingId = classId;
+                        showModal('edit-class-modal');
+                    }
+                } else if (card.id === 'add-class-card') {
+                    showModal('add-class-modal');
+                } else if (card) {
+                    currentClassId = classId;
+                    renderClassView();
+                }
+            });
             confirmAddClassBtn.addEventListener('click', () => { const name = newClassNameInput.value.trim(); const count = parseInt(newClassSizeInput.value, 10); if (name && count > 0 && allClasses.length < 20) { const newClass = { id: Date.now(), name, students: [], groupCount: 4 }; for(let i=1; i<=count; i++) newClass.students.push({id: i, name: `${i}號`, score: 0, group: null}); allClasses.push(newClass); saveData(); renderDashboard(); hideModal('add-class-modal'); } else { alert('請輸入有效班級名稱與人數(最多20個班級)。'); } });
-            groupCountInput.addEventListener('change', () => { const c = allClasses.find(cls => cls.id === currentClassId); c.groupCount = parseInt(groupCountInput.value, 10); c.students.forEach(s => s.group = null); saveData(); renderGroupsTab(c); });
-            randomGroupBtn.addEventListener('click', () => { const c = allClasses.find(cls => cls.id === currentClassId); const count = c.groupCount || 4; const shuffled = [...c.students].sort(() => 0.5 - Math.random()); shuffled.forEach((s, i) => s.group = (i % count) + 1); saveData(); renderGroupsTab(c); });
-            
             cancelAddClassBtn.addEventListener('click', () => hideModal('add-class-modal'));
+            
+            confirmEditClassBtn.addEventListener('click', () => {
+                const newName = editClassNameInput.value.trim();
+                const editingId = parseInt(editClassModal.dataset.editingId);
+                if (newName && editingId) {
+                    const targetClass = allClasses.find(c => c.id === editingId);
+                    if (targetClass) {
+                        targetClass.name = newName;
+                        saveData();
+                        renderDashboard();
+                        hideModal('edit-class-modal');
+                    }
+                } else {
+                    alert('請輸入有效的班級名稱。');
+                }
+            });
+            cancelEditClassBtn.addEventListener('click', () => hideModal('edit-class-modal'));
+
             backToDashboardBtn.addEventListener('click', () => switchScreen('dashboard'));
             navTabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
             studentGrid.addEventListener('click', (e) => { if(e.target.matches('.score-btn')) updateScore(parseInt(e.target.dataset.id), parseInt(e.target.dataset.amount)); });
             groupsArea.addEventListener('click', (e) => { if (e.target.matches('.score-btn')) updateGroupScore(parseInt(e.target.dataset.id), parseInt(e.target.dataset.amount)); });
+            groupCountInput.addEventListener('change', () => { const c = allClasses.find(cls => cls.id === currentClassId); c.groupCount = parseInt(groupCountInput.value, 10); c.students.forEach(s => s.group = null); saveData(); renderGroupsTab(c); });
+            randomGroupBtn.addEventListener('click', () => { const c = allClasses.find(cls => cls.id === currentClassId); const count = c.groupCount || 4; const shuffled = [...c.students].sort(() => 0.5 - Math.random()); shuffled.forEach((s, i) => s.group = (i % count) + 1); saveData(); renderGroupsTab(c); });
             calculateGradesBtn.addEventListener('click', calculateGrades);
             resetScoresBtn.addEventListener('click', resetScores);
             exportGradesBtn.addEventListener('click', () => { let tsv = "姓名\t淨分\t平時分數\n"; document.querySelectorAll('#grades-table tbody tr').forEach(r => { const c = r.querySelectorAll('td'); tsv += `${c[0].textContent}\t${c[1].textContent}\t${c[2].textContent}\n`; }); navigator.clipboard.writeText(tsv).then(() => alert('成績已複製！可直接貼到Excel。')); });
             exportDataBtn.addEventListener('click', () => { const dataStr = JSON.stringify(allClasses); const blob = new Blob([dataStr], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.download = `班級動力站_備份_${new Date().toISOString().slice(0,10)}.json`; a.href = url; a.click(); URL.revokeObjectURL(url); });
             loadDataBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (Array.isArray(data)) { if (confirm("確定載入存檔？將覆蓋現有資料！")) { allClasses = data; saveData(); renderDashboard(); alert("載入成功！"); } } else { alert("檔案格式錯誤。"); } } catch { alert("讀取失敗。"); } }; reader.readAsText(file); } });
+            fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (Array.isArray(data)) { if (confirm("確定載入存檔？將覆蓋現有資料！")) { allClasses = data; saveData(); renderDashboard(); alert("載入成功！"); } } else { alert("檔案格式錯誤。"); } } catch { alert("讀取失敗。"); } }; reader.readText(file); } });
             document.addEventListener('dragstart', (e) => { if(e.target.matches('.student-chip')) draggedStudentId = parseInt(e.target.dataset.studentId); });
             document.addEventListener('dragover', (e) => e.preventDefault());
             document.addEventListener('drop', (e) => { const col = e.target.closest('.group-column, #unassigned-students-column'); if (col) { const groupId = col.id === 'unassigned-students-column' ? null : parseInt(col.dataset.groupId); const c = allClasses.find(cls => cls.id === currentClassId); const s = c.students.find(st => st.id === draggedStudentId); if (s) { s.group = groupId; saveData(); renderGroupsTab(c); } } });
             themeSwitcher.addEventListener('click', (e) => { const themeBtn = e.target.closest('.theme-btn'); if(themeBtn) { const themeName = themeBtn.id.replace('theme-', ''); applyTheme(themeName); saveTheme(themeName); } });
 
+            // --- 6. 背景動畫 ---
             const canvas = document.getElementById('particle-canvas'); const ctx = canvas.getContext('2d'); let particles = [];
             const resizeCanvas = () => { canvas.width = window.innerWidth; canvas.height = window.innerHeight; };
             class Particle { constructor() { this.x = Math.random() * canvas.width; this.y = Math.random() * canvas.height; this.size = Math.random() * 2.5 + 0.5; this.speedY = Math.random() * 0.5 + 0.1; this.opacity = Math.random() * 0.5 + 0.2; } update() { this.y -= this.speedY; if (this.y < 0) { this.y = canvas.height; this.x = Math.random() * canvas.width; } } draw() { const color = getComputedStyle(document.body).getPropertyValue('--particle-color').trim(); ctx.fillStyle = color; ctx.beginPath(); ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2); ctx.fill(); } }
@@ -334,6 +353,7 @@
             const animateParticles = () => { ctx.clearRect(0, 0, canvas.width, canvas.height); particles.forEach(p => { p.update(); p.draw(); }); requestAnimationFrame(animateParticles); };
             window.addEventListener('resize', () => { resizeCanvas(); initParticles(); });
             
+            // --- 7. 程式初始化 ---
             loadData();
             loadTheme();
             renderDashboard();
@@ -342,27 +362,6 @@
             initParticles();
             animateParticles();
         });
-
-confirmEditClassBtn.addEventListener('click', () => {
-    const newName = editClassNameInput.value.trim();
-    const editingId = parseInt(editClassModal.dataset.editingId);
-    if (newName && editingId) {
-        const targetClass = allClasses.find(c => c.id === editingId);
-        if (targetClass) {
-            targetClass.name = newName;
-            saveData();
-            renderDashboard();
-            hideModal('edit-class-modal');
-        }
-    } else {
-        alert('請輸入有效的班級名稱。');
-    }
-});
-
-cancelEditClassBtn.addEventListener('click', () => hideModal('edit-class-modal'));
-// END: 貼上結束
-
-const canvas = document.getElementById('particle-canvas');
     </script>
 </body>
 </html>
