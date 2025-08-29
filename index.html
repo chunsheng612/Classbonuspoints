@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>班級經營動力站 v2.1</title>
+    <title>班級經營動力站 v2.2</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+TC:wght@400;500;700;900&display=swap');
         
@@ -50,40 +50,7 @@
             --shadow-color: rgba(0, 0, 0, 0.15);
             --particle-color: rgba(255, 255, 255, 0.7);
         }
-        .class-card { padding: 25px; cursor: pointer; text-align: center; position: relative; }
-        
-        .class-card-actions {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            display: flex;
-            gap: 8px;
-            opacity: 0.5;
-            transition: opacity 0.2s ease;
-        }
-        .class-card:hover .class-card-actions {
-            opacity: 1;
-        }
-        .class-action-btn {
-            width: 32px;
-            height: 32px;
-            font-size: 16px;
-            padding: 0;
-            border-radius: 50% !important;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.2);
-            color: var(--text-color-secondary);
-            border: 1px solid var(--card-border);
-        }
-        .class-action-btn:hover {
-            color: var(--text-color-primary);
-            background: rgba(0,0,0,0.4);
-        }
 
-        #add-class-card { border: 2px dashed var(--card-border); font-size: 3em; display: flex; align-items: center; justify-content: center; color: var(--text-color-secondary); }
-        
         * { box-sizing: border-box; }
         html, body { height: 100%; margin: 0; }
         body {
@@ -129,22 +96,32 @@
         .creator-credit { position: fixed; bottom: 15px; left: 50%; transform: translateX(-50%); background: var(--card-bg); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--card-border); color: var(--text-color-secondary); padding: 10px 20px; border-radius: var(--control-border-radius); font-size: 14px; font-weight: 500; text-decoration: none; z-index: 100; transition: all 0.3s ease; }
         .creator-credit:hover { color: var(--text-color-primary); box-shadow: 0 5px 20px rgba(0,0,0,0.2); transform: translateY(-3px) translateX(-50%); }
 
-        /* ... All other CSS styles from previous version ... */
         #class-dashboard-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 25px; }
         .class-card { padding: 25px; cursor: pointer; text-align: center; position: relative; }
+        .class-card-actions { position: absolute; top: 15px; right: 15px; display: flex; gap: 8px; opacity: 0.5; transition: opacity 0.2s ease; }
+        .class-card:hover .class-card-actions { opacity: 1; }
+        .class-action-btn { width: 32px; height: 32px; font-size: 16px; padding: 0; border-radius: 50% !important; display: flex; align-items: center; justify-content: center; background: rgba(0,0,0,0.2); color: var(--text-color-secondary); border: 1px solid var(--card-border); }
+        .class-action-btn:hover { color: var(--text-color-primary); background: rgba(0,0,0,0.4); }
         #add-class-card { border: 2px dashed var(--card-border); font-size: 3em; display: flex; align-items: center; justify-content: center; color: var(--text-color-secondary); }
+
         .class-view-nav { display: flex; gap: 5px; margin-bottom: 25px; background: rgba(0,0,0,0.2); border-radius: var(--control-border-radius); padding: 5px; }
         .nav-tab { flex: 1; text-align: center; padding: 12px; color: var(--text-color-secondary); font-weight: 600; border-radius: 10px; }
         .nav-tab.active { background: var(--primary-color); color: white; box-shadow: 0 0 15px var(--primary-color); }
         .tab-content { display: none; } .tab-content.active { display: block; animation: fadeIn 0.4s; }
+        
         #student-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 20px; }
         .student-card { padding: 20px; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; }
+        .student-header { width: 100%; display: flex; justify-content: space-between; align-items: center; margin-bottom: 5px; }
+        .delete-student-btn { width: 28px; height: 28px; padding: 0; font-size: 15px; border-radius: 50% !important; background: transparent; color: var(--text-color-secondary); border: none; opacity: 0; transition: opacity 0.2s ease, background 0.2s ease; }
+        .student-card:hover .delete-student-btn { opacity: 0.7; }
+        .delete-student-btn:hover { opacity: 1; background: var(--danger-color); color: white; }
         .student-name { font-size: 1.3em; font-weight: 600; }
         .student-score { font-size: 2.5em; font-weight: 900; margin: 15px 0; color: var(--primary-color); }
         .score-controls { display: flex; gap: 10px; }
         .score-btn { width: 44px; height: 44px; font-size: 1.8em; padding: 0; border-radius: 50% !important; }
         .score-feedback { position: absolute; top: 50%; left: 50%; font-size: 3.5em; font-weight: 900; pointer-events: none; opacity: 0; animation: score-pop 0.6s ease-out; }
         @keyframes score-pop { 0% { opacity: 1; transform: translate(-50%, -50%) scale(0.5); } 100% { opacity: 0; transform: translate(-50%, -150%) scale(1); } }
+
         .group-container { display: grid; grid-template-columns: 300px 1fr; gap: 25px; align-items: start; }
         @media (max-width: 900px) { .group-container { grid-template-columns: 1fr; } }
         .groups-area { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; }
@@ -153,11 +130,13 @@
         .group-members { min-height: 150px; border-radius: 8px; padding: 5px; display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr)); gap: 8px; }
         .student-chip { background: var(--card-bg); backdrop-filter: blur(10px); padding: 10px; border-radius: 10px; cursor: grab; text-align: center; }
         #unassigned-students .student-chip { background: var(--warning-color); color: white; }
+        
         .grades-actions { display: flex; flex-wrap: wrap; gap: 15px; margin-bottom: 25px; }
         #grades-table-container { overflow-x: auto; }
         #grades-table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         #grades-table th, #grades-table td { padding: 15px; text-align: center; border-bottom: 1px solid var(--card-border); }
         .final-grade { font-weight: 900; font-size: 1.3em; color: var(--success-color); }
+        
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 100; align-items: center; justify-content: center; background: rgba(0,0,0,0.5); backdrop-filter: blur(15px); opacity: 0; transition: opacity 0.3s ease; }
         .modal.visible { display: flex; opacity: 1; }
         .modal .card { width: 90%; max-width: 450px; transform: scale(0.95); transition: transform 0.3s cubic-bezier(0.2, 0.8, 0.2, 1.2); }
@@ -169,21 +148,10 @@
     
     <div id="class-dashboard" class="app-screen active"><div class="container"><div class="header"><h1>班級經營動力站</h1><div style="display: flex; gap: 15px; align-items: center;"><div id="theme-switcher"><button class="theme-btn" id="theme-cosmic" title="宇宙巡航"></button><button class="theme-btn" id="theme-warm" title="暖心白板"></button><button class="theme-btn" id="theme-apple" title="蘋果簡約"></button></div><div style="display: flex; gap: 10px;"><button id="load-data-btn" class="btn btn-secondary">載入</button><button id="export-data-btn" class="btn btn-primary">匯出</button></div></div></div><div id="class-dashboard-grid"></div></div></div>
     <div id="class-view" class="app-screen"><div class="container"><div class="header"><h1 id="class-view-title"></h1><button id="back-to-dashboard-btn" class="btn btn-secondary">返回總覽</button></div><div class="class-view-nav"><button class="nav-tab active" data-tab="students">個人模式</button><button class="nav-tab" data-tab="groups">分組模式</button><button class="nav-tab" data-tab="grades">成績結算</button></div><div id="students-tab" class="tab-content active card"><div id="student-grid"></div></div><div id="groups-tab" class="tab-content"><div class="card" style="margin-bottom: 20px;"><div style="display: flex; flex-wrap: wrap; gap: 15px; align-items: end;"><div style="flex-grow: 1;"><label>設定組數</label><input type="number" id="group-count-input" value="4"></div><button id="random-group-btn" class="btn btn-primary">一鍵隨機分組</button></div></div><div class="group-container"><div class="group-column card" id="unassigned-students-column"><div class="group-header"><h3>未分組</h3></div><div class="group-members" id="unassigned-students"></div></div><div class="groups-area" id="groups-area"></div></div></div><div id="grades-tab" class="tab-content card"><div class="grades-actions"><button id="calculate-grades-btn" class="btn btn-success">一鍵結算平時分數</button><button id="export-grades-btn" class="btn btn-primary">匯出Excel報表</button><button id="reset-scores-btn" class="btn btn-danger">新考段分數重置</button></div><div id="grades-table-container"><table id="grades-table"><thead><tr><th>座號/姓名</th><th>累積淨分</th><th>平時分數</th></tr></thead><tbody></tbody></table></div></div></div></div>
+    
     <div id="add-class-modal" class="modal"><div class="card"><h2>新增班級</h2><div style="margin-bottom: 15px;"><label>班級名稱</label><input type="text" id="new-class-name" placeholder="例如：三年一班"></div><div style="margin-bottom: 20px;"><label>班級人數</label><input type="number" id="new-class-size" value="28"></div><div style="display: flex; gap: 10px;"><button id="cancel-add-class" class="btn btn-secondary" style="flex:1;">取消</button><button id="confirm-add-class" class="btn btn-primary" style="flex:1;">確認</button></div></div></div>
-    <!-- START: 請在這裡貼上以下程式碼 -->
-    <div id="edit-class-modal" class="modal">
-        <div class="card">
-            <h2>編輯班級</h2>
-            <div style="margin-bottom: 20px;">
-                <label>班級名稱</label>
-                <input type="text" id="edit-class-name" placeholder="例如：三年一班">
-            </div>
-            <div style="display: flex; gap: 10px;">
-                <button id="cancel-edit-class" class="btn btn-secondary" style="flex:1;">取消</button>
-                <button id="confirm-edit-class" class="btn btn-primary" style="flex:1;">儲存</button>
-            </div>
-        </div>
-    </div>
+    <div id="edit-class-modal" class="modal"><div class="card"><h2>編輯班級</h2><div style="margin-bottom: 20px;"><label>班級名稱</label><input type="text" id="edit-class-name" placeholder="例如：三年一班"></div><div style="display: flex; gap: 10px;"><button id="cancel-edit-class" class="btn btn-secondary" style="flex:1;">取消</button><button id="confirm-edit-class" class="btn btn-primary" style="flex:1;">儲存</button></div></div></div>
+    
     <input type="file" id="file-input" style="display: none;" accept=".json">
     <a href="https://www.facebook.com/FunFun.AI.Teacher/" target="_blank" rel="noopener noreferrer" class="creator-credit">Created by 方方老師</a>
     
@@ -200,7 +168,7 @@
             const confirmAddClassBtn = document.getElementById('confirm-add-class');
             const cancelAddClassBtn = document.getElementById('cancel-add-class');
 
-            // 編輯班級 Modal (新增的)
+            // 編輯班級 Modal
             const editClassModal = document.getElementById('edit-class-modal');
             const editClassNameInput = document.getElementById('edit-class-name');
             const confirmEditClassBtn = document.getElementById('confirm-edit-class');
@@ -230,8 +198,8 @@
             let draggedStudentId = null;
 
             // --- 2. 核心功能函數 ---
-            const saveData = () => localStorage.setItem('classroomPowerhouse_v2_1', JSON.stringify(allClasses));
-            const loadData = () => { const data = localStorage.getItem('classroomPowerhouse_v2_1'); if (data) allClasses = JSON.parse(data); };
+            const saveData = () => localStorage.setItem('classroomPowerhouse_v2_2', JSON.stringify(allClasses));
+            const loadData = () => { const data = localStorage.getItem('classroomPowerhouse_v2_2'); if (data) allClasses = JSON.parse(data); };
             const switchScreen = (screenName) => { Object.values(screens).forEach(s => s.classList.remove('active')); screens[screenName].classList.add('active'); };
             const switchTab = (tabName) => { navTabs.forEach(t => t.classList.toggle('active', t.dataset.tab === tabName)); tabContents.forEach(c => c.classList.toggle('active', c.id === `${tabName}-tab`)); };
             const showModal = (modalId) => document.getElementById(modalId).classList.add('visible');
@@ -264,7 +232,25 @@
                 classDashboardGrid.appendChild(addCard);
             };
             const renderClassView = () => { const c = allClasses.find(cls => cls.id === currentClassId); if (!c) { switchScreen('dashboard'); return; } classViewTitle.textContent = c.name; renderStudentsTab(c); renderGroupsTab(c); renderGradesTab(c); switchTab('students'); switchScreen('classView'); };
-            const renderStudentsTab = (c) => { studentGrid.innerHTML = ''; c.students.forEach(s => { const card = document.createElement('div'); card.className = 'card student-card'; card.innerHTML = `<div class="student-name">${s.name}</div><div class="student-score">${s.score}</div><div class="score-controls"><button class="btn btn-danger score-btn" data-id="${s.id}" data-amount="-1">-</button><button class="btn btn-success score-btn" data-id="${s.id}" data-amount="1">+</button></div>`; studentGrid.appendChild(card); }); };
+            const renderStudentsTab = (c) => {
+                studentGrid.innerHTML = '';
+                c.students.forEach(s => {
+                    const card = document.createElement('div');
+                    card.className = 'card student-card';
+                    card.innerHTML = `
+                        <div class="student-header">
+                            <div class="student-name">${s.name}</div>
+                            <button class="delete-student-btn" data-id="${s.id}" title="刪除學生">🗑️</button>
+                        </div>
+                        <div class="student-score">${s.score}</div>
+                        <div class="score-controls">
+                            <button class="btn btn-danger score-btn" data-id="${s.id}" data-amount="-1">-</button>
+                            <button class="btn btn-success score-btn" data-id="${s.id}" data-amount="1">+</button>
+                        </div>
+                    `;
+                    studentGrid.appendChild(card);
+                });
+            };
             const renderGroupsTab = (c) => { unassignedStudentsContainer.innerHTML = ''; groupsArea.innerHTML = ''; if (!c.groupCount) c.groupCount = 4; groupCountInput.value = c.groupCount; c.students.forEach(s => { if (s.group === null || s.group > c.groupCount) unassignedStudentsContainer.appendChild(createStudentChip(s)); }); for (let i = 1; i <= c.groupCount; i++) { const col = document.createElement('div'); col.className = 'group-column card'; col.dataset.groupId = i; col.innerHTML = `<div class="group-header"><h3>第 ${i} 組</h3><div class="score-controls"><button class="btn btn-danger score-btn" data-id="${i}" data-amount="-1">-</button><button class="btn btn-success score-btn" data-id="${i}" data-amount="1">+</button></div></div><div class="group-members"></div>`; const members = col.querySelector('.group-members'); c.students.filter(s => s.group === i).forEach(s => members.appendChild(createStudentChip(s))); groupsArea.appendChild(col); } };
             const renderGradesTab = (c) => { gradesTableBody.innerHTML = ''; c.students.forEach(s => { const r = document.createElement('tr'); r.innerHTML = `<td>${s.name}</td><td>${s.score}</td><td class="final-grade" data-id="${s.id}">-</td>`; gradesTableBody.appendChild(r); }); };
             const createStudentChip = (s) => { const c = document.createElement('div'); c.className = 'student-chip'; c.textContent = s.name; c.dataset.studentId = s.id; c.draggable = true; return c; };
@@ -304,7 +290,26 @@
                     renderClassView();
                 }
             });
-            confirmAddClassBtn.addEventListener('click', () => { const name = newClassNameInput.value.trim(); const count = parseInt(newClassSizeInput.value, 10); if (name && count > 0 && allClasses.length < 20) { const newClass = { id: Date.now(), name, students: [], groupCount: 4 }; for(let i=1; i<=count; i++) newClass.students.push({id: i, name: `${i}號`, score: 0, group: null}); allClasses.push(newClass); saveData(); renderDashboard(); hideModal('add-class-modal'); } else { alert('請輸入有效班級名稱與人數(最多20個班級)。'); } });
+            
+            studentGrid.addEventListener('click', (e) => {
+                if (e.target.matches('.score-btn')) {
+                    updateScore(parseInt(e.target.dataset.id), parseInt(e.target.dataset.amount));
+                }
+                const deleteBtn = e.target.closest('.delete-student-btn');
+                if (deleteBtn) {
+                    const studentId = parseInt(deleteBtn.dataset.id);
+                    const currentClass = allClasses.find(cls => cls.id === currentClassId);
+                    if (!currentClass) return;
+                    const studentToDelete = currentClass.students.find(s => s.id === studentId);
+                    if (studentToDelete && confirm(`確定要刪除學生「${studentToDelete.name}」嗎？`)) {
+                        currentClass.students = currentClass.students.filter(s => s.id !== studentId);
+                        saveData();
+                        renderClassView();
+                    }
+                }
+            });
+
+            confirmAddClassBtn.addEventListener('click', () => { const name = newClassNameInput.value.trim(); const count = parseInt(newClassSizeInput.value, 10); if (name && count > 0 && allClasses.length < 20) { const newClass = { id: Date.now(), name, students: [], groupCount: 4 }; for(let i=1; i<=count; i++) newClass.students.push({id: Date.now() + i, name: `${i}號`, score: 0, group: null}); allClasses.push(newClass); saveData(); renderDashboard(); hideModal('add-class-modal'); } else { alert('請輸入有效班級名稱與人數(最多20個班級)。'); } });
             cancelAddClassBtn.addEventListener('click', () => hideModal('add-class-modal'));
             
             confirmEditClassBtn.addEventListener('click', () => {
@@ -326,7 +331,6 @@
 
             backToDashboardBtn.addEventListener('click', () => switchScreen('dashboard'));
             navTabs.forEach(tab => tab.addEventListener('click', () => switchTab(tab.dataset.tab)));
-            studentGrid.addEventListener('click', (e) => { if(e.target.matches('.score-btn')) updateScore(parseInt(e.target.dataset.id), parseInt(e.target.dataset.amount)); });
             groupsArea.addEventListener('click', (e) => { if (e.target.matches('.score-btn')) updateGroupScore(parseInt(e.target.dataset.id), parseInt(e.target.dataset.amount)); });
             groupCountInput.addEventListener('change', () => { const c = allClasses.find(cls => cls.id === currentClassId); c.groupCount = parseInt(groupCountInput.value, 10); c.students.forEach(s => s.group = null); saveData(); renderGroupsTab(c); });
             randomGroupBtn.addEventListener('click', () => { const c = allClasses.find(cls => cls.id === currentClassId); const count = c.groupCount || 4; const shuffled = [...c.students].sort(() => 0.5 - Math.random()); shuffled.forEach((s, i) => s.group = (i % count) + 1); saveData(); renderGroupsTab(c); });
@@ -335,7 +339,7 @@
             exportGradesBtn.addEventListener('click', () => { let tsv = "姓名\t淨分\t平時分數\n"; document.querySelectorAll('#grades-table tbody tr').forEach(r => { const c = r.querySelectorAll('td'); tsv += `${c[0].textContent}\t${c[1].textContent}\t${c[2].textContent}\n`; }); navigator.clipboard.writeText(tsv).then(() => alert('成績已複製！可直接貼到Excel。')); });
             exportDataBtn.addEventListener('click', () => { const dataStr = JSON.stringify(allClasses); const blob = new Blob([dataStr], {type:'application/json'}); const url = URL.createObjectURL(blob); const a = document.createElement('a'); a.download = `班級動力站_備份_${new Date().toISOString().slice(0,10)}.json`; a.href = url; a.click(); URL.revokeObjectURL(url); });
             loadDataBtn.addEventListener('click', () => fileInput.click());
-            fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (Array.isArray(data)) { if (confirm("確定載入存檔？將覆蓋現有資料！")) { allClasses = data; saveData(); renderDashboard(); alert("載入成功！"); } } else { alert("檔案格式錯誤。"); } } catch { alert("讀取失敗。"); } }; reader.readText(file); } });
+            fileInput.addEventListener('change', (e) => { const file = e.target.files[0]; if(file) { const reader = new FileReader(); reader.onload = (ev) => { try { const data = JSON.parse(ev.target.result); if (Array.isArray(data)) { if (confirm("確定載入存檔？將覆蓋現有資料！")) { allClasses = data; saveData(); renderDashboard(); alert("載入成功！"); } } else { alert("檔案格式錯誤。"); } } catch { alert("讀取失敗。"); } }; reader.readAsText(file); } });
             document.addEventListener('dragstart', (e) => { if(e.target.matches('.student-chip')) draggedStudentId = parseInt(e.target.dataset.studentId); });
             document.addEventListener('dragover', (e) => e.preventDefault());
             document.addEventListener('drop', (e) => { const col = e.target.closest('.group-column, #unassigned-students-column'); if (col) { const groupId = col.id === 'unassigned-students-column' ? null : parseInt(col.dataset.groupId); const c = allClasses.find(cls => cls.id === currentClassId); const s = c.students.find(st => st.id === draggedStudentId); if (s) { s.group = groupId; saveData(); renderGroupsTab(c); } } });
